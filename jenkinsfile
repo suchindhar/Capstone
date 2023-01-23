@@ -1,30 +1,29 @@
-pipeline { 
-  
-   agent any
-
-   stages {
-   
-     stage() { 
-        steps { 
-           
+pipeline{
+    agent any
+    environment{
+        dockerImage = ''
+        registry = 'suchindhar/devops-project'
+        registryCredential = 'Docker_id'
+    }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build registry
+                }
+            }
         }
-     }
-     
-     stage("Build application" ) { 
-        steps { 
-           sh 'build.sh'
-           sh 'echo "testing application..."'
+        stage('Docker Login') {
+            steps{
+                script {
+                    docker.withRegistry('',registryCredential){
+                        dockerImage.push()
+                    }
+                }
+            }
+            }
+            stage('Docker Run') {
+                steps{
+                    sh" docker run -it -d -p 3000:3000 demo:v1"
+                }
+            }
         }
-      }
-
-         stage("Deploy application") { 
-         steps { 
-           sh 'deploy.sh'
-           sh 'echo "deploying application..."'
-         }
-
-     }
-  
-   	}
-
-   }
